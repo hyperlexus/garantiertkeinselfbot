@@ -48,7 +48,7 @@ async def on_message(message):
             reingeschissen += 1
 
         if reingeschissen:
-            await message.channel.send(f"hast{" doppelt" if reingeschissen == 2 else ""} reingeschissen{", wie kann man nur so ein blöder spast sein" if reingeschissen == 2 else ""}.")
+            await message.channel.send(f"hast{' doppelt' if reingeschissen == 2 else ''} reingeschissen{', wie kann man nur so ein blöder spast sein' if reingeschissen == 2 else ''}.")
             return
 
         user_id = message.author.id
