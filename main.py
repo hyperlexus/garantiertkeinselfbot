@@ -117,4 +117,11 @@ async def on_message(message):
         message_to_send = " ".join(split_message[1:])
         await message.channel.send(message_to_send)
 
+    elif message.content.startswith("bank.streak"):
+        await message.channel.send("~num")
+        await message.channel.send("~last")
+        await message.channel.send("~rules")
+        await message.channel.send("~base")
+        return
+
 bot.run(TOKEN)
