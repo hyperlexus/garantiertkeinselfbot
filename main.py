@@ -14,6 +14,8 @@ bot = commands.Bot(command_prefix="bank.", self_bot=True)
 
 is_christmas_complete = False
 
+allowed_users = (422800248935546880, 649457215564152852, 290148556776407050, 468786219258740756)
+
 @bot.event
 async def on_ready():
     print(f"bot is running. logged in as {bot.user}")
@@ -35,6 +37,9 @@ async def on_message(message):
         return math.ceil(geld2 ** 0.5 / 10) / (4 * rate2)
 
     if message.content.startswith("bank.offer"):
+        if user_id not in allowed_users:
+            await message.channel.send("you do not have an account at the bank!")
+            return
         try:
             _, geld, rate = message.content.split(" ")
         except ValueError:
