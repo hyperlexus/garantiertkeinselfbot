@@ -55,13 +55,3 @@ def determine_next_number(current_number: int, rules: dict, base: int):
         return next_number
     else:
         return ''.join(convert_base10_list_to_base(number_to_base(next_number, base)))
-
-
-# for received number
-def convert_number_in_base_to_decimal(number_received: str, base: int):
-    base_characters_dict_inv = {k: v for k, v in base_characters_dict.items()}
-    digit_list = reversed(list(number_received))
-    decimal_number = 0
-    for idx, digit in enumerate(digit_list):
-        decimal_number += base_characters_dict_inv[digit] * (base**idx)
-    return decimal_number
