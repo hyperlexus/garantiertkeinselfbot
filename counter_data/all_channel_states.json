@@ -1,0 +1,50 @@
+{
+    "1379091983682900030": {
+        "channel_id": 1379091983682900030,
+        "rules": {
+            "div": [],
+            "digsum": [],
+            "root": []
+        },
+        "base": 10,
+        "expected_next_number": 1,
+        "last_number": 0,
+        "is_streak_active": true
+    },
+    "1379099395890479187": {
+        "channel_id": 1379099395890479187,
+        "rules": {
+            "div": [],
+            "digsum": [],
+            "root": []
+        },
+        "base": 10,
+        "expected_next_number": 1,
+        "last_number": 0,
+        "is_streak_active": false
+    },
+    "1379149395164921876": {
+        "channel_id": 1379149395164921876,
+        "rules": {
+            "div": [],
+            "digsum": [],
+            "root": []
+        },
+        "base": 10,
+        "expected_next_number": 1,
+        "last_number": 0,
+        "is_streak_active": true
+    },
+    "1379170269029204080": {
+        "channel_id": 1379170269029204080,
+        "rules": {
+            "div": [],
+            "digsum": [],
+            "root": []
+        },
+        "base": 10,
+        "expected_next_number": 1,
+        "last_number": 0,
+        "is_streak_active": true
+    }
+}

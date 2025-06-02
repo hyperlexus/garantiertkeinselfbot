@@ -1,3 +1,5 @@
+import asyncio
+
 import discord
 from discord.ext import commands
 from dotenv import load_dotenv
@@ -108,26 +110,27 @@ async def on_message(message: discord.Message):
         print(f"warning: message received in channel not in the json: {message.channel.id} consider restarting")
         return
 
-    if message.author.id == TARGET_BOT_ID:
-        parsed_action = False
-        if message.content.startswith("You paid "):
-            rule_message = message.content.partition("to add: ")[2]
-            counter.parse_rule_update(rule_message)
-            save_all_active_counters()
-            parsed_action = True
-
-        if parsed_action:
-            try:
-                await message.add_reaction('👌')
-            except Exception as e:
-                print(e)
-            return
-
-    if "base" in message.content and message.author != bot.user and not message.author.bot:
-        # todo
-        pass
+    # parsing rule adding
+    if message.author.id == TARGET_BOT_ID and message.content.startswith("You paid "):
+        rule_message = message.content.partition("to add: ")[2]
+        counter.parse_rule_update(rule_message)
+        save_all_active_counters()
+        return
 
     number_to_send = counter.process_message(message.content, message.author.id, message.author.bot)
+
+    if message.content.startswith("1 base ") and message.author != bot.user and not message.author.bot:
+        base_message_splits = message.content.partition(" base ")
+        def is_correct_base_message(reaction_added: discord.Reaction, user_reacting: discord.User) -> bool:
+            return reaction_added.message.channel == message.channel and user_reacting.id == TARGET_BOT_ID and str(reaction_added.emoji) == "<:kekmark:805121814296133653>"
+        try:
+            reaction_object, reacting_user_object = await bot.wait_for('reaction_add', check=is_correct_base_message, timeout=10)
+        except asyncio.TimeoutError:
+            print(f"an attempt was made to switch to base {base_message_splits[2]} in channel {message.channel.id}, but was unsuccessful.")
+            return
+        if str(reaction_object.emoji) == "<:kekmark:805121814296133653>":
+            number_to_send = counter.parse_base_message(base_message_splits, message.author.id, is_bot=False)
+        else: return
 
     if number_to_send == -1:
         await message.channel.send(f"skill issue.")

@@ -1,6 +1,6 @@
 from handlers.correct_number_handler import determine_next_number
 from handlers.rule_added_handler import parse_rule_message
-from handlers.base_to_decimal_handler import all_characters_in_message_valid_in_base
+from handlers.base_to_decimal_handler import all_characters_in_message_valid_in_base, convert_number_in_base_to_decimal
 
 TARGET_BOT_ID = 996129161825484911
 
@@ -14,18 +14,17 @@ class ChannelCounter:
         self.is_streak_active = True
 
     def process_message(self, message_content: str, author_id: int, is_bot: bool) -> int | str | None:
-        if message_content.endswith('money.') and author_id == TARGET_BOT_ID:
+        if message_content.endswith('money.') and "lost" in message_content and author_id == TARGET_BOT_ID:
             self.reset_streak()
             return -1
 
         if not is_bot and all_characters_in_message_valid_in_base(self.base, message_content):
-            number_received = int(message_content)
+            number_received = convert_number_in_base_to_decimal(message_content, self.base)
         else: return None
 
         print(f"[channel: {self.channel_id} base:{self.base} rules:{self.rules}] awaited: {self.expected_next_number}, received: {number_received}")
 
         if number_received == self.expected_next_number:
-            print(self.expected_next_number, self.rules, self.last_number)
             number_bot_should_send = determine_next_number(self.expected_next_number, self.rules, self.base)
             self.last_number = number_bot_should_send
             self.expected_next_number = determine_next_number(number_bot_should_send, self.rules, self.base)
@@ -36,6 +35,7 @@ class ChannelCounter:
 
     def reset_streak(self):
         self.expected_next_number = 1
+        self.last_number = 0
         self.is_streak_active = False
         self.rules = {"div": [], "digsum": [], "root": []}  # reset rules on streak fail
         print(f"[channel {self.channel_id}]'s streak was reset. next 1 will continue it")
@@ -49,9 +49,10 @@ class ChannelCounter:
         self.rules[rule_mode].append(rule_number)
         self.refresh_next_number()
 
-    def parse_base_message(self, base_message_content: str):
-        # todo
-        pass
+    def parse_base_message(self, base_message_content: tuple[str, str, str], author_id: int, is_bot: bool) -> int | str | None:
+        self.base = int(base_message_content[2])
+        self.refresh_next_number()
+        return self.process_message(base_message_content[0], author_id, is_bot)
 
     def get_state(self) -> dict:
         return {
