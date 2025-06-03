@@ -123,7 +123,8 @@ async def on_message(message: discord.Message):
         solution = get_captcha_result(captcha_content)
         captcha_lock.append(message.channel.id)
         def captcha_finished_reacting(reaction_added: discord.Reaction, user_reacting: discord.User) -> bool:
-            return reaction_added.message.channel == message.channel and (str(reaction_added.emoji) == reaction_emojis[9] or reaction_added.emoji == reaction_emojis_human[9])
+            return reaction_added.message.channel == message.channel and (str(reaction_added.emoji) == reaction_emojis[9] or str(reaction_added.emoji) == reaction_emojis_human[9])
+            # and user_reacting.id == TARGET_BOT_ID
         try:
             await bot.wait_for("reaction_add", check=captcha_finished_reacting, timeout=15)
         except asyncio.TimeoutError:
