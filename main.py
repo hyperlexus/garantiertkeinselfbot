@@ -6,6 +6,7 @@ from dotenv import load_dotenv
 import os
 import json
 
+from handlers.captcha_handler import get_captcha_result, reaction_emojis, reaction_emojis_human
 from channel_counter import ChannelCounter
 
 load_dotenv()
@@ -21,9 +22,7 @@ bot = commands.Bot(command_prefix="whateveritdoesntmatteritsaselfbotleel", self_
 DATA_DIR = "counter_data"
 MASTER_STATE_FILE = os.path.join(DATA_DIR, "all_channel_states.json")
 
-if not os.path.exists(DATA_DIR):
-    os.makedirs(DATA_DIR)
-
+captcha_lock = []
 active_counters: dict[int, ChannelCounter] = {}
 
 
@@ -101,6 +100,7 @@ async def on_ready():
 
 @bot.event
 async def on_message(message: discord.Message):
+    global captcha_lock  # im sorry... :( this is necessary
     if message.author == bot.user: return
     if not message.guild or message.guild.id != TARGET_GUILD_ID:
         return
@@ -117,8 +117,23 @@ async def on_message(message: discord.Message):
         save_all_active_counters()
         return
 
-    number_to_send = counter.process_message(message.content, message.author.id, message.author.bot)
+    # parsing captchas
+    if message.content.startswith("Oi") and "<@1317900136327680070>" in message.content:
+        captcha_content = message.content.partition("<@1317900136327680070>!\n\n")[2]
+        solution = get_captcha_result(captcha_content)
+        captcha_lock.append(message.channel.id)
+        def captcha_finished_reacting(reaction_added: discord.Reaction, user_reacting: discord.User) -> bool:
+            return reaction_added.message.channel == message.channel and (str(reaction_added.emoji) == reaction_emojis[9] or reaction_added.emoji == reaction_emojis_human[9])
+        try:
+            await bot.wait_for("reaction_add", check=captcha_finished_reacting, timeout=15)
+        except asyncio.TimeoutError:
+            await message.channel.send(f"captcha expired. this is not supposed to happen.")
+        await message.add_reaction(str(reaction_emojis[solution]))
+        captcha_lock.remove(message.channel.id)
 
+    number_to_send = counter.process_message(message)
+
+    # parsing base message ("1 base 16")
     if message.content.startswith("1 base ") and message.author != bot.user and not message.author.bot:
         base_message_splits = message.content.partition(" base ")
         def is_correct_base_message(reaction_added: discord.Reaction, user_reacting: discord.User) -> bool:
@@ -129,7 +144,7 @@ async def on_message(message: discord.Message):
             print(f"an attempt was made to switch to base {base_message_splits[2]} in channel {message.channel.id}, but was unsuccessful.")
             return
         if str(reaction_object.emoji) == "<:kekmark:805121814296133653>":
-            number_to_send = counter.parse_base_message(base_message_splits, message.author.id, is_bot=False)
+            number_to_send = counter.parse_base_message(base_message_splits, message)
         else: return
 
     if number_to_send == -1:
@@ -138,6 +153,9 @@ async def on_message(message: discord.Message):
         return
 
     if number_to_send is not None:
+        while message.channel.id in captcha_lock:
+            await asyncio.sleep(1)
+            print("trying")
         try:
             await message.channel.send(str(number_to_send))
             save_all_active_counters()

@@ -19,9 +19,9 @@
             "root": []
         },
         "base": 10,
-        "expected_next_number": 1,
-        "last_number": 0,
-        "is_streak_active": false
+        "expected_next_number": 389,
+        "last_number": 388,
+        "is_streak_active": true
     },
     "1379149395164921876": {
         "channel_id": 1379149395164921876,

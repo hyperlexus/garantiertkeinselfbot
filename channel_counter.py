@@ -1,3 +1,5 @@
+import discord
+
 from handlers.correct_number_handler import determine_next_number
 from handlers.rule_added_handler import parse_rule_message
 from handlers.base_to_decimal_handler import all_characters_in_message_valid_in_base, convert_number_in_base_to_decimal
@@ -13,7 +15,10 @@ class ChannelCounter:
         self.expected_next_number = initial_expected_number
         self.is_streak_active = True
 
-    def process_message(self, message_content: str, author_id: int, is_bot: bool) -> int | str | None:
+    def process_message(self, message: discord.Message) -> int | str | None:
+        message_content = message.content
+        author_id = message.author.id
+        is_bot = message.author.bot
         if message_content.endswith('money.') and "lost" in message_content and author_id == TARGET_BOT_ID:
             self.reset_streak()
             return -1
@@ -49,10 +54,10 @@ class ChannelCounter:
         self.rules[rule_mode].append(rule_number)
         self.refresh_next_number()
 
-    def parse_base_message(self, base_message_content: tuple[str, str, str], author_id: int, is_bot: bool) -> int | str | None:
+    def parse_base_message(self, base_message_content: tuple[str, str, str], message: discord.Message) -> int | str | None:
         self.base = int(base_message_content[2])
         self.refresh_next_number()
-        return self.process_message(base_message_content[0], author_id, is_bot)
+        return self.process_message(message)
 
     def get_state(self) -> dict:
         return {
